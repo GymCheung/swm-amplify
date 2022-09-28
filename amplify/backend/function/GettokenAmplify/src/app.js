@@ -39,7 +39,9 @@ app.get('/gettoken', async function(req, res) {
   const projectId = req.apiGateway.event.queryStringParameters.project;
   const identityId = req.apiGateway.event.requestContext.identity.cognitoIdentityId;
 
-  const swClient = new IoTSiteWiseClient({});
+  const swClient = new IoTSiteWiseClient({
+    region: 'us-west-2',
+  });
   const command = new ListAccessPoliciesCommand({
     identityType: 'USER',
     identityId,

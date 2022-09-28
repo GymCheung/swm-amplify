@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "paths": {
+    "/gettoken": {
+      "name": "/gettoken",
+      "lambdaFunction": "GettokenAmplify",
+      "permissions": {
+        "setting": "private",
+        "auth": [
+          "read"
+        ]
+      }
+    }
+  }
+}

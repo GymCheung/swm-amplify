@@ -1,0 +1,33 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-traveldeals-dev-234903-authRole",
+      "UnauthRoleArn": "arn:aws:iam::826541393164:role/amplify-traveldeals-dev-234903-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::826541393164:role/amplify-traveldeals-dev-234903-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-traveldeals-dev-234903-deployment",
+      "UnauthRoleName": "amplify-traveldeals-dev-234903-unauthRole",
+      "StackName": "amplify-traveldeals-dev-234903",
+      "StackId": "arn:aws:cloudformation:us-west-2:826541393164:stack/amplify-traveldeals-dev-234903/fab49e80-3bd4-11ed-aacc-06d9a77dedd3",
+      "AmplifyAppId": "d2nmp76dg4vnc",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-traveldeals-dev-234903-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
+    },
+    "categories": {
+      "auth": {
+        "traveldeals218c9234": {}
+      },
+      "function": {
+        "GettokenAmplify": {
+          "deploymentBucketName": "amplify-traveldeals-dev-234903-deployment",
+          "s3Key": "amplify-builds/GettokenAmplify-4532664f52484850734b-build.zip"
+        }
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "d2nmp76dg4vnc",
+          "type": "manual"
+        }
+      }
+    }
+  }
+}

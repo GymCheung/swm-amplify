@@ -6,12 +6,12 @@ export function override(resources: AmplifyRootStackTemplate) {
 
   const authRole = resources.authRole;
 
-  const basePolicies = Array.isArray(authRole.policies)
-    ? authRole.policies
-    : [authRole.policies];
+  // const basePolicies = Array.isArray(authRole.policies)
+  //   ? authRole.policies
+  //   : [authRole.policies];
 
   authRole.policies = [
-    ...basePolicies,
+    // ...basePolicies,
     {
       policyName: "amplify-permissions-custom-resources",
       policyDocument: {

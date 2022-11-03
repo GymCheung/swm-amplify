@@ -5,7 +5,9 @@ backend:
       commands:
         - ASSET_ROOT=${ASSET_ROOT}
         - cd amplify/backend
+        - yarn install
         - yarn run build
+        - cd ../..
         - '# Execute Amplify CLI with the helper script'
         - amplifyPush --simple
 frontend:

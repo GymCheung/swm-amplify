@@ -25,29 +25,8 @@
       }
     }
   },
-  "function": {
-    "GettokenAmplify": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "Lambda"
-    }
-  },
-  "api": {
-    "gettoken": {
-      "service": "API Gateway",
-      "providerPlugin": "awscloudformation",
-      "dependsOn": [
-        {
-          "category": "function",
-          "resourceName": "GettokenAmplify",
-          "attributes": [
-            "Name",
-            "Arn"
-          ]
-        }
-      ]
-    }
-  },
+  "function": {},
+  "api": {},
   "hosting": {
     "amplifyhosting": {
       "service": "amplifyhosting",

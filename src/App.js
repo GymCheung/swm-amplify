@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Amplify, API } from 'aws-amplify';
+import { Amplify, API, Auth } from 'aws-amplify';
 
-import { withAuthenticator, Flex, Divider, Card, Heading, Button, SelectField, Grid, Text, ScrollView, Badge } from '@aws-amplify/ui-react';
+import { withAuthenticator, Flex, Divider, Card, Heading, Button, SelectField, Grid, Text, ScrollView, Badge, Image } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 
 import awsExports from './aws-exports';
@@ -15,6 +15,11 @@ const portalId = '55309920-59d5-4cc1-a8c9-9340b7fae247';
 const projectId = '9372dc1a-3f01-4fa4-a196-781544441862';
 const noAccessPortalId = 'bea83406-c5ef-4b33-b7a3-0decd94f17a3';
 const noAccessProjectId = '173dd79a-a739-4aef-afda-1bab2a7fe88e';
+
+const cardStyle = { overflow: 'auto' };
+const codeStyle = {
+  'whiteSpace': 'pre-wrap',
+}
 
 const getData = async (projectId) => { 
   const apiName = 'gettoken';
@@ -36,7 +41,7 @@ function Token() {
   const [portalSelection, setPortalSelection] = useState(portalId);
   const [projectSelection, setProjectSelection] = useState(projectId);
 
-  const [token, setToken] = useState(undefined);
+  const [awsCreds, setAwsCreds] = useState(undefined);
   const [tokenStatus, setTokenStatus] = useState(undefined);
 
   const [describeProject, setDescribeProject] = useState(undefined);
@@ -46,28 +51,28 @@ function Token() {
   const [portalStatus, setPortalStatus] = useState(undefined);
 
   const requestPortalToken = () => {
-    setToken(undefined);
+    setAwsCreds(undefined);
     setTokenStatus('loading');
 
     getData()
-      .then(data => setToken(data)).then(() => setTokenStatus('success'))
-      .catch(err => { setToken(err); setTokenStatus('failure'); });
+      .then(data => setAwsCreds(data)).then(() => setTokenStatus('success'))
+      .catch(err => { setAwsCreds(err); setTokenStatus('failure'); });
   }
 
   const requestProjectToken = () => {
-    setToken(undefined);
+    setAwsCreds(undefined);
     setTokenStatus('loading');
 
     getData(tokenProjectSelection)
-      .then(data => setToken(data)).then(() => setTokenStatus('success'))
-      .catch(err => { setToken(err); setTokenStatus('error'); });
+      .then(data => setAwsCreds(data)).then(() => setTokenStatus('success'))
+      .catch(err => { setAwsCreds(err); setTokenStatus('error'); });
   }
 
   const requestProject = () => {
     setDescribeProject(undefined);
     setProjectStatus('loading');
 
-    const creds = token.data.Credentials;
+    const creds = awsCreds.data.Credentials;
     const swClient = new IoTSiteWiseClient({
       credentials: {
         accessKeyId: creds.AccessKeyId,
@@ -90,7 +95,7 @@ function Token() {
     setDescribePortal(undefined);
     setPortalStatus('loading');
 
-    const creds = token.data.Credentials;
+    const creds = awsCreds.data.Credentials;
     const swClient = new IoTSiteWiseClient({
       credentials: {
         accessKeyId: creds.AccessKeyId,
@@ -109,14 +114,12 @@ function Token() {
       .catch(err => { setDescribePortal(err); setPortalStatus('error'); });
   }
 
-  const cardStyle = { overflow: 'auto' };
-
-  const codeStyle = {
-    'whiteSpace': 'pre-wrap',
-  }
-
   return (
-    <>
+    <Grid
+      columnGap="0.5rem"
+      rowGap="0.5rem"
+      templateColumns="1fr 1fr 1fr"
+    >
       <Card
         columnStart="1"
         columnEnd="2"
@@ -143,21 +146,21 @@ function Token() {
         >
           <Button onClick={requestPortalToken} variation="primary">Portal Token</Button>
           <Button onClick={requestProjectToken} variation="primary">Project Token</Button>
-          <Button onClick={() => {setToken(undefined);setTokenStatus(undefined);}} variation="primary">Clear Token</Button>
+          <Button onClick={() => {setAwsCreds(undefined);setTokenStatus(undefined);}} variation="primary">Clear Token</Button>
         </Grid>
 
         <Text>Request Status:</Text>
         <Badge variation={tokenStatus}>{tokenStatus}</Badge>
 
         <ScrollView>
-          <Text style={codeStyle}>{JSON.stringify(token, null, 2)}</Text>
+          <Text style={codeStyle}>{JSON.stringify(awsCreds, null, 2)}</Text>
         </ScrollView>
       </Card>
 
       <Card
         style={cardStyle}
       >
-        <Heading level={2}>DescribePortal:</Heading>
+        <Heading level={2}>Portal Admin Access - DescribePortal:</Heading>
         <SelectField
           label="Portal Id:"
           descriptiveText="Select the portal Id to describe"
@@ -174,7 +177,7 @@ function Token() {
           columnGap="0.5rem"
           templateColumns="1fr 1fr 1fr"
         >
-          {token?.data?.Credentials && <Button onClick={requestPortal} variation="primary">Describe Portal</Button>}
+          {awsCreds?.data?.Credentials && <Button onClick={requestPortal} variation="primary">Describe Portal</Button>}
           {describePortal && <Button onClick={() => {setDescribePortal(undefined);setPortalStatus(undefined)}} variation="primary">Clear Portal</Button>}
         </Grid>
 
@@ -189,7 +192,7 @@ function Token() {
       <Card
         style={cardStyle}
       >
-        <Heading level={2}>DescribeProject:</Heading>
+        <Heading level={2}>Project Admin Access - DescribeProject:</Heading>
         <SelectField
           label="Project Id:"
           descriptiveText="Select the project Id to describe"
@@ -206,7 +209,7 @@ function Token() {
           columnGap="0.5rem"
           templateColumns="1fr 1fr 1fr"
         >
-          {token?.data?.Credentials && <Button onClick={requestProject} variation="primary">Describe Project</Button>}
+          {awsCreds?.data?.Credentials && <Button onClick={requestProject} variation="primary">Describe Project</Button>}
           {describeProject && <Button onClick={() => {setDescribeProject(undefined);setProjectStatus(undefined);}} variation="primary">Clear Project</Button>}
         </Grid>
 
@@ -217,7 +220,91 @@ function Token() {
           <Text style={codeStyle}>{JSON.stringify(describeProject, null, 2)}</Text>
         </ScrollView>
       </Card>
-    </>
+    </Grid>
+  );
+}
+
+function AmplifyAuth() {
+  const [awsCreds, setAwsCreds] = useState();
+  const [describePortal, setDescribePortal] = useState(undefined);
+  const [portalStatus, setPortalStatus] = useState(undefined);
+  const [portalSelection, setPortalSelection] = useState(portalId);
+
+  const requestAwsCreds = () => {
+    setAwsCreds(undefined);
+
+    Auth.currentCredentials().then((creds) => setAwsCreds(creds, null, 2));
+  }
+
+  const requestPortal = () => {
+    setDescribePortal(undefined);
+    setPortalStatus('loading');
+
+    const creds = awsCreds;
+    const swClient = new IoTSiteWiseClient({
+      credentials: {
+        accessKeyId: creds.accessKeyId,
+        secretAccessKey: creds.secretAccessKey,
+        sessionToken: creds.sessionToken,
+        expiration: creds.expiration
+      },
+      region,
+    });
+
+    swClient
+      .send(new DescribePortalCommand({
+        portalId: portalSelection,
+      }))
+      .then(setDescribePortal).then(() => setPortalStatus('success'))
+      .catch(err => { setDescribePortal(err); setPortalStatus('error'); });
+  }
+
+  return (
+    <Grid
+      columnGap="0.5rem"
+      rowGap="0.5rem"
+      templateColumns="1fr 1fr 1fr"
+    >
+      <Card
+        columnStart="1"
+        columnEnd="2"
+        style={cardStyle}
+      >
+        <Button onClick={requestAwsCreds} variation="primary">AWS Creds</Button>
+        <Text style={codeStyle}>{JSON.stringify(awsCreds, null, 2)}</Text>
+      </Card>
+      <Card
+        style={cardStyle}
+      >
+        <Heading level={2}>Portal Admin Access - DescribePortal:</Heading>
+        <SelectField
+          label="Portal Id:"
+          descriptiveText="Select the portal Id to describe"
+          onChange={(e) => setPortalSelection(e.target.value)}
+        >
+          <option value={portalId}>{portalId} (with access)</option>
+          <option value={noAccessPortalId}>{noAccessPortalId} (no access unless tagged &#123; "swm-{portalId}": "ALLOW" &#125;)</option>
+          <option value="bad-portal-id">bad-portal-id (no access)</option>
+        </SelectField>
+        
+        <Divider orientation="horizontal" />
+
+        <Grid
+          columnGap="0.5rem"
+          templateColumns="1fr 1fr 1fr"
+        >
+          {!!awsCreds && <Button onClick={requestPortal} variation="primary">Describe Portal</Button>}
+          {describePortal && <Button onClick={() => {setDescribePortal(undefined);setPortalStatus(undefined)}} variation="primary">Clear Portal</Button>}
+        </Grid>
+
+        <Text>Request Status: {portalStatus}</Text>
+        <Badge variation={portalStatus}>{portalStatus}</Badge>
+        
+        <ScrollView>
+          <Text style={codeStyle}>{JSON.stringify(describePortal, null, 2)}</Text>
+        </ScrollView>
+      </Card>
+    </Grid>
   );
 }
 
@@ -237,13 +324,8 @@ function App({ signOut, user }) {
           <Button onClick={signOut}>Sign out</Button>
         </Flex>
       </Card>
-      <Grid
-        columnGap="0.5rem"
-        rowGap="0.5rem"
-        templateColumns="1fr 1fr 1fr"
-      >
-        <Token></Token>
-      </Grid>
+      <Token></Token>
+      <AmplifyAuth/>
     </>
   );
 }

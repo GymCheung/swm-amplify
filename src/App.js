@@ -6,7 +6,7 @@ import '@aws-amplify/ui-react/styles.css';
 
 import awsExports from './aws-exports';
 
-import { IoTSiteWiseClient, DescribeProjectCommand, DescribePortalCommand } from '@aws-sdk/client-iotsitewise';
+import { IoTSiteWiseClient, DescribeProjectCommand, DescribePortalCommand, DescribeAssetCommand } from '@aws-sdk/client-iotsitewise';
 
 Amplify.configure(awsExports);
 
@@ -15,6 +15,8 @@ const portalId = '55309920-59d5-4cc1-a8c9-9340b7fae247';
 const projectId = '9372dc1a-3f01-4fa4-a196-781544441862';
 const noAccessPortalId = 'bea83406-c5ef-4b33-b7a3-0decd94f17a3';
 const noAccessProjectId = '173dd79a-a739-4aef-afda-1bab2a7fe88e';
+const assetId = '7d698cd7-d808-408d-a7ce-d044688d747d';
+const childAssetId = 'b5a68de0-9e97-4890-9df4-ee98a5b1bccf';
 
 const cardStyle = { overflow: 'auto' };
 const codeStyle = {
@@ -226,9 +228,9 @@ function Token() {
 
 function AmplifyAuth() {
   const [awsCreds, setAwsCreds] = useState();
-  const [describePortal, setDescribePortal] = useState(undefined);
-  const [portalStatus, setPortalStatus] = useState(undefined);
-  const [portalSelection, setPortalSelection] = useState(portalId);
+  const [describeAsset, setDescribeAsset] = useState(undefined);
+  const [assetStatus, setAssetStatus] = useState(undefined);
+  const [assetSelection, setAssetSelection] = useState(assetId);
 
   const requestAwsCreds = () => {
     setAwsCreds(undefined);
@@ -236,9 +238,9 @@ function AmplifyAuth() {
     Auth.currentCredentials().then((creds) => setAwsCreds(creds, null, 2));
   }
 
-  const requestPortal = () => {
-    setDescribePortal(undefined);
-    setPortalStatus('loading');
+  const requestAsset = () => {
+    setDescribeAsset(undefined);
+    setAssetStatus('loading');
 
     const creds = awsCreds;
     const swClient = new IoTSiteWiseClient({
@@ -252,11 +254,11 @@ function AmplifyAuth() {
     });
 
     swClient
-      .send(new DescribePortalCommand({
-        portalId: portalSelection,
+      .send(new DescribeAssetCommand({
+        assetId: assetSelection,
       }))
-      .then(setDescribePortal).then(() => setPortalStatus('success'))
-      .catch(err => { setDescribePortal(err); setPortalStatus('error'); });
+      .then(setDescribeAsset).then(() => setAssetStatus('success'))
+      .catch(err => { setDescribeAsset(err); setAssetStatus('error'); });
   }
 
   return (
@@ -276,15 +278,16 @@ function AmplifyAuth() {
       <Card
         style={cardStyle}
       >
-        <Heading level={2}>Portal Admin Access - DescribePortal:</Heading>
+        <Heading level={2}>DescribeAsset:</Heading>
         <SelectField
-          label="Portal Id:"
-          descriptiveText="Select the portal Id to describe"
-          onChange={(e) => setPortalSelection(e.target.value)}
+          label="Asset Id:"
+          descriptiveText="Select the asset Id to describe"
+          onChange={(e) => setAssetSelection(e.target.value)}
         >
-          <option value={portalId}>{portalId} (with access)</option>
-          <option value={noAccessPortalId}>{noAccessPortalId} (no access unless tagged &#123; "swm-{portalId}": "ALLOW" &#125;)</option>
-          <option value="bad-portal-id">bad-portal-id (no access)</option>
+          <option value={assetId}>{assetId} (with access; root)</option>
+          <option value={childAssetId}>{childAssetId} (with access; child)</option>
+          <option value={noAccessPortalId}>{noAccessPortalId} (no access)</option>
+          <option value="55895f20-daca-4140-ae17-f402b5c88e90">55895f20-daca-4140-ae17-f402b5c88e90 (with access; other root)</option>
         </SelectField>
         
         <Divider orientation="horizontal" />
@@ -293,15 +296,15 @@ function AmplifyAuth() {
           columnGap="0.5rem"
           templateColumns="1fr 1fr 1fr"
         >
-          {!!awsCreds && <Button onClick={requestPortal} variation="primary">Describe Portal</Button>}
-          {describePortal && <Button onClick={() => {setDescribePortal(undefined);setPortalStatus(undefined)}} variation="primary">Clear Portal</Button>}
+          {!!awsCreds && <Button onClick={requestAsset} variation="primary">Describe Asset</Button>}
+          {describeAsset && <Button onClick={() => {setDescribeAsset(undefined);setAssetStatus(undefined)}} variation="primary">Clear Response</Button>}
         </Grid>
 
-        <Text>Request Status: {portalStatus}</Text>
-        <Badge variation={portalStatus}>{portalStatus}</Badge>
+        <Text>Request Status: {assetStatus}</Text>
+        <Badge variation={assetStatus}>{assetStatus}</Badge>
         
         <ScrollView>
-          <Text style={codeStyle}>{JSON.stringify(describePortal, null, 2)}</Text>
+          <Text style={codeStyle}>{JSON.stringify(describeAsset, null, 2)}</Text>
         </ScrollView>
       </Card>
     </Grid>
@@ -324,7 +327,6 @@ function App({ signOut, user }) {
           <Button onClick={signOut}>Sign out</Button>
         </Flex>
       </Card>
-      <Token></Token>
       <AmplifyAuth/>
     </>
   );
